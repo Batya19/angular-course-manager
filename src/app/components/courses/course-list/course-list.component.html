@@ -1,0 +1,57 @@
+<div class="course-page-container">
+  <div class="page-header">
+    <h1 class="page-title"><span class="title-icon">🎓</span> Discover Courses</h1>
+  </div>
+
+  <div class="page-content">
+    @if (isLoading) {
+    <div class="spinner-container">
+      <mat-spinner color="accent"></mat-spinner>
+    </div>
+    } @else if (errorMessage) {
+    <p class="error-message">{{ errorMessage }}</p>
+    } @else {
+    <div class="action-bar">
+      @if (isTeacher) {
+      <button mat-raised-button color="primary" (click)="createNewCourse()">
+        <mat-icon>add_circle</mat-icon> Create New Course
+      </button>
+      }
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Search Courses..." [(ngModel)]="searchTerm" (keyup)="filterCourses()">
+      </div>
+    </div>
+
+    @if (filteredCourses.length === 0) {
+    <div class="empty-state">
+      <mat-icon>school</mat-icon>
+      <h3>No Courses Found</h3>
+      <p>Try changing your search terms or check back later for new courses.</p>
+    </div>
+    } @else {
+    <div class="courses-grid">
+      @for (course of filteredCourses; track course.id) {
+      <div class="course-card" (click)="viewCourseDetails(course.id)">
+        <div class="course-card-header">
+          <mat-icon class="course-icon">school</mat-icon>
+          <h3 class="course-title">{{ course.title }}</h3>
+        </div>
+        <div class="course-card-content">
+          <p>{{ course.description }}</p>
+        </div>
+        <div class="course-card-footer">
+          <button mat-button color="primary" (click)="enrollInCourse(course.id, $event)" *ngIf="!course.isEnrolled">
+            <mat-icon>person_add</mat-icon> Enroll in Course
+          </button>
+          <div class="enrolled-badge" *ngIf="course.isEnrolled">
+            <mat-icon>check_circle</mat-icon> Already Enrolled
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+    }
+  </div>
+</div>

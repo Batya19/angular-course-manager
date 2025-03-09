@@ -1,0 +1,20 @@
+<mat-toolbar color="primary">
+  <span routerLink="/" class="cursor-pointer">Course Management System</span>
+  <span class="spacer"></span>
+
+  @if (isAuthenticated$ | async) {
+  <button mat-button routerLink="/courses">All Courses</button>
+  <button mat-button routerLink="/my-courses">My Courses</button>
+
+  @let userRole = userRole$ | async;
+
+  @if (userRole === 'teacher') {
+  <button mat-button routerLink="/teacher/courses">Manage Courses</button>
+  }
+
+  <button mat-button (click)="logout()">Logout</button>
+  } @else {
+  <button mat-button routerLink="/login">Login</button>
+  <button mat-button routerLink="/register">Register</button>
+  }
+</mat-toolbar>

@@ -1,0 +1,76 @@
+body {
+  background-color: #fce4ec;
+}
+
+.mat-card {
+  background-color: #f8bbd0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.mat-card-header {
+  background-color: #f48fb1;
+  color: white;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.mat-card-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.mat-form-field {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.mat-label {
+  color: #ad1457;
+}
+
+.mat-input-element {
+  background-color: #fff0f6;
+  border-radius: 4px;
+}
+
+.mat-error {
+  color: #e91e63;
+}
+
+.button-container {
+  margin-top: 15px;
+}
+
+button {
+  background-color: #f06292;
+  color: white;
+  border-radius: 4px;
+  padding: 10px 20px;
+  width: 100%;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #d81b60;
+}
+
+button:disabled {
+  background-color: #f8bbd0;
+  cursor: not-allowed;
+}
+
+mat-card-actions p {
+  color: #f48fb1;
+}
+
+mat-card-actions a {
+  color: #ad1457;
+  text-decoration: none;
+}
+
+mat-card-actions a:hover {
+  text-decoration: underline;
+}

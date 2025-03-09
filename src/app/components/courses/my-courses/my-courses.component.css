@@ -1,0 +1,220 @@
+:root {
+  --pastel-pink: #FFB3B3;
+  --pastel-cream: #FFF9F1;
+  --pastel-light-pink: #FFFAF1;
+  --warm-brown: #5D4037;
+  --blue-gray: #607D8B;
+  --pastel-pink-transparent: rgba(255, 179, 179, 0.5);
+}
+
+mat-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+mat-card-title {
+  background-color: var(--pastel-pink-transparent);
+  padding: 30px 40px;
+  border-bottom: 1px solid var(--pastel-pink);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  color: var(--warm-brown);
+  font-size: 2.2rem;
+  margin: 0;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  border-bottom: none;
+}
+
+.title-icon {
+  margin-right: 16px;
+  font-size: 2.2rem;
+}
+
+mat-card-content {
+  padding: 30px 40px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.error-message {
+  color: #FF7D8F;
+  margin: 15px 0;
+  padding: 12px;
+  background-color: #FFF0F3;
+  border-radius: 8px;
+  border-left: 4px solid #FF7D8F;
+}
+
+.success-message {
+  color: #81B29A;
+  margin: 15px 0;
+  padding: 12px;
+  background-color: #F0FFEF;
+  border-radius: 8px;
+  border-left: 4px solid #81B29A;
+}
+
+.course-container {
+  margin-top: 25px;
+}
+
+.my-course-item {
+  cursor: pointer;
+  background-color: var(--pastel-light-pink);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 5px 15px rgba(93, 64, 55, 0.1);
+  border: 1px solid var(--pastel-pink);
+}
+
+.my-course-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(93, 64, 55, 0.2);
+  background-color: #FFF5F5;
+}
+
+.my-course-info {
+  padding: 20px;
+  flex-grow: 1;
+  position: relative;
+}
+
+.my-course-info::before {
+  content: "school";
+  font-family: 'Material Icons';
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: var(--pastel-pink);
+  font-size: 24px;
+}
+
+.my-course-title {
+  color: var(--warm-brown);
+  font-size: 1.4rem;
+  margin: 0 0 12px 40px;
+  font-weight: 500;
+  padding-top: 4px;
+}
+
+.my-course-description {
+  color: var(--blue-gray);
+  line-height: 1.6;
+  margin: 10px 0 0;
+  padding: 0 20px;
+}
+
+.my-course-actions {
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 179, 179, 0.3);
+  display: flex;
+  justify-content: flex-end;
+}
+
+button[mat-raised-button] {
+  border-radius: 8px;
+  padding: 8px 25px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  border: none;
+  margin: 8px 12px 8px 0;
+}
+
+button[mat-raised-button][color="primary"] {
+  background-color: var(--pastel-pink);
+  color: var(--warm-brown);
+}
+
+button[mat-raised-button][color="primary"]:hover {
+  background-color: #FFA0A0;
+  box-shadow: 0 5px 12px rgba(255, 179, 179, 0.3);
+  transform: translateY(-3px);
+}
+
+button[mat-raised-button][color="warn"] {
+  background-color: #FF9AA2;
+  color: white;
+}
+
+button[mat-raised-button][color="warn"]:hover {
+  background-color: #F08995;
+  box-shadow: 0 5px 12px rgba(255, 154, 162, 0.3);
+  transform: translateY(-3px);
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+mat-spinner {
+  margin: 30px auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: #FFFAF1;
+  border-radius: 16px;
+  margin: 20px 0;
+  border: 1px dashed #FFB3B3;
+}
+
+.empty-state mat-icon {
+  font-size: 60px;
+  color: #FFB3B3;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.empty-state h3 {
+  color: #5D4037;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.empty-state p {
+  color: #607D8B;
+  margin-bottom: 20px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  mat-card-title {
+    padding: 20px;
+    font-size: 1.8rem;
+  }
+
+  mat-card-content {
+    padding: 20px;
+  }
+
+  .title-icon {
+    font-size: 1.8rem;
+  }
+
+  .my-course-title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .my-course-item {
+    max-width: none;
+  }
+}

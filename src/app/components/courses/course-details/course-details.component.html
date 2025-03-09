@@ -1,0 +1,63 @@
+<mat-card>
+  <mat-card-title>
+    @if (course) {
+    {{ course.title }}
+    }
+  </mat-card-title>
+
+  <mat-card-content>
+    @if (isLoading) {
+    <mat-spinner></mat-spinner>
+    } @else if (errorMessage) {
+    <p class="error-message">{{ errorMessage }}</p>
+    } @else if (course) {
+    <div class="course-info-section">
+      <h3>Course Description</h3>
+      <p>{{ course.description }}</p>
+
+      <div class="course-actions">
+        @if (!isEnrolled && !isOwner) {
+        <button mat-raised-button color="primary" (click)="enrollInCourse()">Enroll</button>
+        }
+
+        @if (isEnrolled && !isOwner) {
+        <button mat-raised-button color="warn" (click)="unenrollFromCourse()">Unenroll</button>
+        }
+
+        @if (isOwner) {
+        <button mat-raised-button color="primary" (click)="editCourse()">Edit Course</button>
+        }
+      </div>
+    </div>
+
+    <div class="lessons-preview-section">
+      <div class="section-header">
+        <h3>Lessons Preview</h3>
+        @if (isOwner) {
+        <button mat-button color="primary" (click)="viewAllLessons()">Manage Lessons</button>
+        } @else if (isEnrolled) {
+        <button mat-button color="primary" (click)="viewAllLessons()">View All Lessons</button>
+        }
+      </div>
+
+      @if (lessons.length === 0) {
+      <p>No lessons available for this course yet.</p>
+      } @else {
+      <mat-list>
+        @for (lesson of lessons; track lesson.id) {
+        <mat-list-item (click)="viewLesson(lesson.id)" style="cursor: pointer;">
+          <h4 mat-line>{{ lesson.title }}</h4>
+        </mat-list-item>
+        <mat-divider></mat-divider>
+        }
+        @if (lessons.length === 5) {
+        <mat-list-item>
+          <p mat-line><i>View all lessons...</i></p>
+        </mat-list-item>
+        }
+      </mat-list>
+      }
+    </div>
+    }
+  </mat-card-content>
+</mat-card>

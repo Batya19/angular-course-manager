@@ -1,0 +1,39 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content-container {
+  flex: 1;
+  padding-bottom: 30px;
+}
+
+.app-footer {
+  background-color: #f5f5f5;
+  padding: 20px 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.app-footer .footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.app-footer .footer-content p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .content-container {
+    padding-bottom: 20px;
+  }
+
+  .app-footer {
+    padding: 15px 0;
+  }
+}

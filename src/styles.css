@@ -1,0 +1,171 @@
+/* Global Styles */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+  }
+  
+  .container {
+    padding: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .mt-3 {
+    margin-top: 1rem;
+  }
+  
+  .mt-4 {
+    margin-top: 1.5rem;
+  }
+  
+  .mt-5 {
+    margin-top: 2rem;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  .spacer {
+    flex: 1 1 auto;
+  }
+  
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  
+  .alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+  
+  .alert-danger {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .error-message {
+    margin-bottom: 1rem;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .button-spinner {
+    margin: 0 auto;
+  }
+  
+  /* Navbar Styles */
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  
+  /* Home Page Styles */
+  .hero-section {
+    background-color: #3f51b5;
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+  }
+  
+  .hero-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-section p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .features-section {
+    margin: 3rem 0;
+  }
+  
+  .feature-card {
+    height: 100%;
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .feature-icon {
+    font-size: 3rem;
+    height: 3rem;
+    width: 3rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Course Styles */
+  .course-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .course-card mat-card-content {
+    flex-grow: 1;
+  }
+  
+  .course-description {
+    margin-bottom: 2rem;
+    white-space: pre-line;
+  }
+  
+  .progress-info {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Lesson Styles */
+  .lesson-item {
+    cursor: pointer;
+  }
+  
+  .lesson-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .lesson-content {
+    margin: 1.5rem 0;
+    white-space: pre-line;
+  }
+  
+  .navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+  }
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

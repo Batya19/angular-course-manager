@@ -1,0 +1,58 @@
+<mat-card>
+  <mat-card-title>{{ isEditing ? 'Edit Course' : 'Create Course' }}</mat-card-title>
+
+  <mat-card-content>
+    @if (errorMessage) {
+    <p class="error-message">{{ errorMessage }}</p>
+    }
+    @if (successMessage) {
+    <p class="success-message">{{ successMessage }}</p>
+    }
+
+    <form [formGroup]="courseForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title">
+        @if (courseForm.get('title')?.invalid && (courseForm.get('title')?.dirty || courseForm.get('title')?.touched)) {
+        <mat-error>
+          @if (courseForm.get('title')?.errors?.['required']) {
+          Title is required.
+          }
+          @if (courseForm.get('title')?.errors?.['minlength']) {
+          Title must be at least 3 characters long.
+          }
+          @if (courseForm.get('title')?.errors?.['maxlength']) {
+          Title cannot be more than 100 characters long.
+          }
+        </mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+        @if (courseForm.get('description')?.invalid && (courseForm.get('description')?.dirty ||
+        courseForm.get('description')?.touched)) {
+        <mat-error>
+          @if (courseForm.get('description')?.errors?.['required']) {
+          Description is required.
+          }
+          @if (courseForm.get('description')?.errors?.['minlength']) {
+          Description must be at least 10 characters long.
+          }
+          @if (courseForm.get('description')?.errors?.['maxlength']) {
+          Description cannot be more than 1000 characters long.
+          }
+        </mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">{{ isEditing ? 'Update' :
+        'Create' }}</button>
+      <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+      @if (isEditing) {
+      <button mat-raised-button color="warn" type="button" (click)="deleteCourse()">Delete</button>
+      }
+    </form>
+  </mat-card-content>
+</mat-card>
