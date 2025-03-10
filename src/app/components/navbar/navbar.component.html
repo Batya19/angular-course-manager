@@ -1,20 +1,40 @@
-<mat-toolbar color="primary">
+<mat-toolbar>
   <span routerLink="/" class="cursor-pointer">Course Management System</span>
   <span class="spacer"></span>
 
   @if (isAuthenticated$ | async) {
-  <button mat-button routerLink="/courses">All Courses</button>
-  <button mat-button routerLink="/my-courses">My Courses</button>
+    <button mat-button routerLink="/courses" routerLinkActive="active-link" class="nav-button">
+      <mat-icon>library_books</mat-icon>
+      <span>All Courses</span>
+    </button>
+    
+    <button mat-button routerLink="/my-courses" routerLinkActive="active-link" class="nav-button">
+      <mat-icon>bookmark</mat-icon>
+      <span>My Courses</span>
+    </button>
 
-  @let userRole = userRole$ | async;
+    @let userRole = userRole$ | async;
 
-  @if (userRole === 'teacher') {
-  <button mat-button routerLink="/teacher/courses">Manage Courses</button>
-  }
+    @if (userRole === 'teacher') {
+      <button mat-button routerLink="/teacher/courses" routerLinkActive="active-link" class="nav-button">
+        <mat-icon>edit</mat-icon>
+        <span>Manage Courses</span>
+      </button>
+    }
 
-  <button mat-button (click)="logout()">Logout</button>
+    <button mat-button (click)="logout()" class="nav-button">
+      <mat-icon>exit_to_app</mat-icon>
+      <span>Logout</span>
+    </button>
   } @else {
-  <button mat-button routerLink="/login">Login</button>
-  <button mat-button routerLink="/register">Register</button>
+    <button mat-button routerLink="/login" routerLinkActive="active-link" class="nav-button">
+      <mat-icon>login</mat-icon>
+      <span>Login</span>
+    </button>
+    
+    <button mat-button routerLink="/register" routerLinkActive="active-link" class="nav-button">
+      <mat-icon>person_add</mat-icon>
+      <span>Register</span>
+    </button>
   }
 </mat-toolbar>
