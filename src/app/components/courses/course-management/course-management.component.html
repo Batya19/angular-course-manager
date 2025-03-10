@@ -1,6 +1,4 @@
 <mat-card>
-  <mat-card-title>{{ isEditing ? 'Edit Course' : 'Create Course' }}</mat-card-title>
-
   <mat-card-content>
     @if (errorMessage) {
     <p class="error-message">{{ errorMessage }}</p>
@@ -9,50 +7,193 @@
     <p class="success-message">{{ successMessage }}</p>
     }
 
-    <form [formGroup]="courseForm" (ngSubmit)="onSubmit()">
-      <mat-form-field appearance="outline">
-        <mat-label>Title</mat-label>
-        <input matInput formControlName="title">
-        @if (courseForm.get('title')?.invalid && (courseForm.get('title')?.dirty || courseForm.get('title')?.touched)) {
-        <mat-error>
-          @if (courseForm.get('title')?.errors?.['required']) {
-          Title is required.
-          }
-          @if (courseForm.get('title')?.errors?.['minlength']) {
-          Title must be at least 3 characters long.
-          }
-          @if (courseForm.get('title')?.errors?.['maxlength']) {
-          Title cannot be more than 100 characters long.
-          }
-        </mat-error>
-        }
-      </mat-form-field>
+    @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+    </div>
+    } @else {
+    <div class="custom-tabs">
+      <div class="tab-header">
+        <button class="tab-button" [class.active]="activeTab === 0" (click)="handleTabChange(0)">
+          Course Details
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 1" [disabled]="isCreatingCourse"
+          (click)="handleTabChange(1)">
+          Lessons
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 2"
+          [disabled]="isCreatingCourse || (!isCreatingLesson && !selectedLesson)" (click)="handleTabChange(2)">
+          Lesson Details
+        </button>
+      </div>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Description</mat-label>
-        <textarea matInput formControlName="description"></textarea>
-        @if (courseForm.get('description')?.invalid && (courseForm.get('description')?.dirty ||
-        courseForm.get('description')?.touched)) {
-        <mat-error>
-          @if (courseForm.get('description')?.errors?.['required']) {
-          Description is required.
+      <!-- Course Tab -->
+      <div class="tab-content" *ngIf="activeTab === 0">
+        <div class="header-container">
+          <h2>{{ isCreatingCourse ? 'Create New Course' : 'Edit Course' }}</h2>
+          @if (!isCreatingCourse) {
+          <button mat-button (click)="navigateToCourses()">
+            <mat-icon>arrow_back</mat-icon> Back to Courses
+          </button>
           }
-          @if (courseForm.get('description')?.errors?.['minlength']) {
-          Description must be at least 10 characters long.
-          }
-          @if (courseForm.get('description')?.errors?.['maxlength']) {
-          Description cannot be more than 1000 characters long.
-          }
-        </mat-error>
-        }
-      </mat-form-field>
+        </div>
 
-      <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">{{ isEditing ? 'Update' :
-        'Create' }}</button>
-      <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
-      @if (isEditing) {
-      <button mat-raised-button color="warn" type="button" (click)="deleteCourse()">Delete</button>
-      }
-    </form>
+        <form [formGroup]="courseForm" (ngSubmit)="onSubmitCourse()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title">
+            @if (courseForm.get('title')?.invalid && (courseForm.get('title')?.dirty ||
+            courseForm.get('title')?.touched)) {
+            <mat-error>
+              @if (courseForm.get('title')?.errors?.['required']) {
+              Title is required.
+              }
+              @if (courseForm.get('title')?.errors?.['minlength']) {
+              Title must be at least 3 characters long.
+              }
+              @if (courseForm.get('title')?.errors?.['maxlength']) {
+              Title cannot be more than 100 characters long.
+              }
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="5"></textarea>
+            @if (courseForm.get('description')?.invalid && (courseForm.get('description')?.dirty ||
+            courseForm.get('description')?.touched)) {
+            <mat-error>
+              @if (courseForm.get('description')?.errors?.['required']) {
+              Description is required.
+              }
+              @if (courseForm.get('description')?.errors?.['minlength']) {
+              Description must be at least 10 characters long.
+              }
+              @if (courseForm.get('description')?.errors?.['maxlength']) {
+              Description cannot be more than 1000 characters long.
+              }
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <div class="button-container">
+            <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">
+              {{ isCreatingCourse ? 'Create Course' : 'Update Course' }}
+            </button>
+            <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+            @if (!isCreatingCourse) {
+            <button mat-raised-button color="warn" type="button" (click)="deleteCourse()">Delete Course</button>
+            }
+          </div>
+        </form>
+      </div>
+
+      <!-- Lessons Tab -->
+      <div class="tab-content" *ngIf="activeTab === 1">
+        <div class="header-container">
+          <h2>Lessons for {{ course?.title }}</h2>
+          <div class="actions-container">
+            <button mat-raised-button color="primary" (click)="createNewLesson()">
+              <mat-icon>add</mat-icon> Add New Lesson
+            </button>
+          </div>
+        </div>
+
+        @if (lessons.length === 0) {
+        <div class="empty-state">
+          <p>No lessons available for this course yet.</p>
+          <p>Get started by adding your first lesson!</p>
+        </div>
+        } @else {
+        <mat-list class="lesson-list">
+          @for (lesson of lessons; track lesson.id) {
+          <mat-list-item (click)="viewLesson(lesson.id)">
+            <div class="lesson-item">
+              <h4 mat-line>{{ lesson.title }}</h4>
+              <div class="lesson-actions">
+                <button mat-icon-button color="accent" (click)="editLesson(lesson.id); $event.stopPropagation()">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteLesson(lesson.id); $event.stopPropagation()">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-list-item>
+          <mat-divider></mat-divider>
+          }
+        </mat-list>
+        }
+      </div>
+
+      <!-- Lesson Details/Edit Tab -->
+      <div class="tab-content" *ngIf="activeTab === 2">
+        <div class="header-container">
+          <h2>{{ isCreatingLesson ? 'Create New Lesson' : isEditingLesson ? 'Edit Lesson' : 'Lesson Details' }}</h2>
+          <button mat-button (click)="handleTabChange(1)">
+            <mat-icon>arrow_back</mat-icon> Back to Lessons
+          </button>
+        </div>
+
+        @if (isCreatingLesson || isEditingLesson) {
+        <form [formGroup]="lessonForm" (ngSubmit)="onSubmitLesson()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title">
+            @if (lessonForm.get('title')?.invalid && (lessonForm.get('title')?.dirty ||
+            lessonForm.get('title')?.touched)) {
+            <mat-error>
+              @if (lessonForm.get('title')?.errors?.['required']) {
+              Title is required.
+              }
+              @if (lessonForm.get('title')?.errors?.['minlength']) {
+              Title must be at least 3 characters long.
+              }
+              @if (lessonForm.get('title')?.errors?.['maxlength']) {
+              Title cannot be more than 100 characters long.
+              }
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Content</mat-label>
+            <textarea matInput formControlName="content" rows="10"></textarea>
+            @if (lessonForm.get('content')?.invalid && (lessonForm.get('content')?.dirty ||
+            lessonForm.get('content')?.touched)) {
+            <mat-error>
+              @if (lessonForm.get('content')?.errors?.['required']) {
+              Content is required.
+              }
+              @if (lessonForm.get('content')?.errors?.['minlength']) {
+              Content must be at least 10 characters long.
+              }
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <div class="button-container">
+            <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">
+              {{ isCreatingLesson ? 'Create Lesson' : 'Update Lesson' }}
+            </button>
+            <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+        } @else if (selectedLesson) {
+        <div class="lesson-view">
+          <h3>{{ selectedLesson.title }}</h3>
+          <div class="lesson-content">
+            <p>{{ selectedLesson.content }}</p>
+          </div>
+          <div class="button-container">
+            <button mat-raised-button color="primary" (click)="editLesson(selectedLesson.id)">Edit</button>
+            <button mat-raised-button color="warn" (click)="deleteLesson(selectedLesson.id)">Delete</button>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
   </mat-card-content>
 </mat-card>

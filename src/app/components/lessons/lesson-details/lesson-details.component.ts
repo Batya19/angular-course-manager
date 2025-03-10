@@ -204,7 +204,8 @@ export class LessonDetailsComponent implements OnInit {
 
   editLesson(): void {
     if (this.lessonId) {
-      this.router.navigate(['/courses', this.courseId, 'lessons', this.lessonId, 'edit']);
+      this.router.navigate(['/courses', this.courseId, 'lessons', this.lessonId]);
+      this.isEditing = true;
     }
   }
 

@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 
-// Components
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
@@ -11,7 +10,6 @@ import { CourseDetailsComponent } from './components/courses/course-details/cour
 import { CourseManagementComponent } from './components/courses/course-management/course-management.component';
 import { LessonListComponent } from './components/lessons/lesson-list/lesson-list.component';
 
-// Guards
 import { AuthGuard } from './guards/auth.guard';
 import { TeacherGuard } from './guards/teacher.guard';
 
@@ -27,5 +25,9 @@ export const routes: Routes = [
   { path: 'course-management/:id', component: CourseManagementComponent },
   { path: 'course-management', component: CourseManagementComponent, },
   { path: 'courses/:courseId/lessons', component: LessonListComponent },
+  { path: 'courses/new', component: CourseManagementComponent },
+  { path: 'courses/:id', component: CourseManagementComponent },
+  { path: 'courses/:id/tab/:tab', component: CourseManagementComponent },
+  { path: 'courses/:id/tab/:tab/:action/:lessonId', component: CourseManagementComponent },
   { path: '**', redirectTo: '' }
 ];
