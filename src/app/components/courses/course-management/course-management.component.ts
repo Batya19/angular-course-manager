@@ -1,27 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog } from '@angular/material/dialog';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTabChangeEvent } from '@angular/material/tabs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Course, CourseRequest } from '../../../models/course.model';
-import { Lesson, LessonRequest } from '../../../models/lesson.model';
-
-import { AuthService } from '../../../services/auth.service';
 import { CourseService } from '../../../services/course.service';
 import { LessonService } from '../../../services/lesson.service';
+import { AuthService } from '../../../services/auth.service';
 
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Course } from '../../../models/course.model';
+import { Lesson, LessonRequest } from '../../../models/lesson.model';
 
 @Component({
   selector: 'app-course-management',
@@ -29,519 +24,398 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
   styleUrls: ['./course-management.component.css'],
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatTabsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
+    CommonModule, 
+    FormsModule,
+    ReactiveFormsModule, 
+    MatCardModule, 
+    MatButtonModule, 
+    MatProgressSpinnerModule, 
     MatIconModule,
-    MatListModule,
-    MatProgressSpinnerModule
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-
-}) export class CourseManagementComponent implements OnInit {
-  // Course-related properties
-  courseForm!: FormGroup;
-  courseId: number | null = null;
-  course: Course | null = null;
-  isEditingCourse: boolean = false;
-  isCreatingCourse: boolean = true;
-
-  // Lesson-related properties
-  lessonForm!: FormGroup;
+    MatInputModule,
+    MatFormFieldModule,
+    MatTooltipModule
+  ]
+})
+export class CourseManagementComponent implements OnInit {
+  courses: Course[] = [];
+  filteredCourses: Course[] = [];
   lessons: Lesson[] = [];
-  selectedLesson: Lesson | null = null;
-  isEditingLesson: boolean = false;
-  isCreatingLesson: boolean = false;
-
-  // Shared properties
-  isSubmitting: boolean = false;
+  selectedCourse: Course | null = null;
+  
+  // Form management
+  courseForm!: FormGroup;
+  lessonForm!: FormGroup;
+  
+  // UI state management
   isLoading: boolean = true;
   errorMessage: string = '';
   successMessage: string = '';
-  isOwner: boolean = false;
-
-  // Tab management
-  activeTab: number = 0; // 0 for course, 1 for lessons, 2 for lesson details/edit
+  searchTerm: string = '';
+  
+  showCourseForm: boolean = false;
+  showLessonManager: boolean = false;
+  showLessonForm: boolean = false;
+  showDeleteConfirmation: boolean = false;
+  
+  editMode: boolean = false;
+  editingLesson: boolean = false;
+  deletingLesson: boolean = false;
+  itemToDeleteId: number | null = null;
 
   constructor(
-    private fb: FormBuilder,
     private courseService: CourseService,
     private lessonService: LessonService,
     private authService: AuthService,
-    private route: ActivatedRoute,
-    public router: Router, // Changed to public
-    private dialog: MatDialog
+    private formBuilder: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
-    this.initForms();
-
+    // Initialize forms
+    this.initializeForms();
+    
+    // Check if we're editing an existing course
     this.route.params.subscribe(params => {
-      // Reset forms and state
-      this.resetState();
-
-      if (params['id']) {
-        this.courseId = +params['id'];
-        this.isEditingCourse = true;
-        this.isCreatingCourse = false;
-        this.loadCourseData();
-
-        // Check if we're in lesson mode
-        if (params['tab'] === 'lessons') {
-          this.activeTab = 1;
-          this.loadLessons();
-        }
-
-        // Check if we're dealing with a specific lesson
-        if (params['lessonId']) {
-          if (params['lessonId'] === 'new') {
-            this.isCreatingLesson = true;
-            this.activeTab = 2;
-          } else {
-            const lessonId = +params['lessonId'];
-            this.loadLessonData(lessonId);
-
-            if (params['action'] === 'edit') {
-              this.isEditingLesson = true;
-              this.activeTab = 2;
-            } else {
-              // Viewing lesson details
-              this.activeTab = 2;
-            }
-          }
-        }
+      const courseId = params['id'];
+      
+      if (courseId) {
+        this.loadCourseDetails(Number(courseId));
       } else {
-        // Add this else block to handle new course creation
-        this.isLoading = false;
-        this.isCreatingCourse = true;
-        this.isEditingCourse = false;
+        this.loadTeacherCourses();
       }
     });
   }
 
-  resetState(): void {
-    this.isEditingCourse = false;
-    this.isCreatingCourse = true;
-    this.isEditingLesson = false;
-    this.isCreatingLesson = false;
-    this.selectedLesson = null;
-    this.course = null;
-    this.lessons = [];
-    this.errorMessage = '';
-    this.successMessage = '';
-    this.isLoading = true; // Set initial loading state
-    this.initForms();
-  }
-
-  initForms(): void {
-    // Initialize the course form
-    this.courseForm = this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-      description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]]
+  initializeForms(): void {
+    this.courseForm = this.formBuilder.group({
+      title: ['', [Validators.required]],
+      description: ['', [Validators.required]]
     });
 
-    // Initialize the lesson form
-    this.lessonForm = this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-      content: ['', [Validators.required, Validators.minLength(10)]]
+    this.lessonForm = this.formBuilder.group({
+      id: [null],
+      title: ['', [Validators.required]],
+      content: ['', [Validators.required]]
     });
   }
 
-  loadCourseData(): void {
-    if (!this.courseId) return;
-
+  loadTeacherCourses(): void {
     this.isLoading = true;
-    this.courseService.getCourseById(this.courseId)
-      .subscribe({
-        next: (course) => {
-          this.course = course;
-          this.isOwner = course.teacherId === this.authService.getUserId();
+    const teacherId = this.authService.getUserId();
+    
+    if (!teacherId) {
+      this.router.navigate(['/login']);
+      return;
+    }
 
-          if (!this.isOwner) {
-            this.router.navigate(['/courses']);
-            return;
-          }
-
-          this.courseForm.patchValue({
-            title: course.title,
-            description: course.description
-          });
-
-          this.isLoading = false;
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to load course data. Please try again later.';
-          this.isLoading = false;
-        }
-      });
+    this.courseService.getCourses().subscribe({
+      next: (courses) => {
+        // Filter only courses created by this teacher
+        this.courses = courses.filter(course => course.teacherId === teacherId);
+        this.filteredCourses = [...this.courses];
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to load your courses. Please try again later.';
+        this.isLoading = false;
+      }
+    });
   }
 
-  loadLessons(): void {
-    if (!this.courseId) return;
-
+  loadCourseDetails(courseId: number): void {
     this.isLoading = true;
-    this.lessonService.getLessonsByCourseId(this.courseId)
-      .subscribe({
-        next: (lessons) => {
-          this.lessons = lessons;
+    
+    this.courseService.getCourseById(courseId).subscribe({
+      next: (course) => {
+        // Check if the logged in teacher owns this course
+        const teacherId = this.authService.getUserId();
+        if (course.teacherId !== teacherId) {
+          this.errorMessage = 'You do not have permission to manage this course.';
           this.isLoading = false;
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to load lessons. Please try again later.';
-          this.isLoading = false;
-          console.error('Error loading lessons:', error);
+          return;
         }
-      });
+        
+        this.selectedCourse = course;
+        this.editCourse(course);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to load course details. Please try again.';
+        this.isLoading = false;
+      }
+    });
   }
 
-  loadLessonData(lessonId: number): void {
-    if (!this.courseId) return;
+  filterCourses(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredCourses = [...this.courses];
+      return;
+    }
 
-    this.isLoading = true;
-    this.lessonService.getLessonById(this.courseId, lessonId)
-      .subscribe({
-        next: (lesson) => {
-          this.selectedLesson = lesson;
-
-          if (this.isEditingLesson) {
-            this.lessonForm.patchValue({
-              title: lesson.title,
-              content: lesson.content
-            });
-          }
-
-          this.isLoading = false;
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to load lesson data. Please try again later.';
-          this.isLoading = false;
-        }
-      });
+    const search = this.searchTerm.toLowerCase().trim();
+    this.filteredCourses = this.courses.filter(course =>
+      course.title.toLowerCase().includes(search) ||
+      course.description.toLowerCase().includes(search)
+    );
   }
 
-  // Course operations
+  // Course Form Operations
+  openCourseForm(): void {
+    this.editMode = false;
+    this.courseForm.reset();
+    this.showCourseForm = true;
+  }
+
+  editCourse(course: Course): void {
+    this.editMode = true;
+    this.courseForm.patchValue({
+      title: course.title,
+      description: course.description
+    });
+    this.selectedCourse = course;
+    this.showCourseForm = true;
+  }
+
+  cancelCourseForm(): void {
+    this.showCourseForm = false;
+    this.courseForm.reset();
+  }
+
   onSubmitCourse(): void {
-    if (this.courseForm.invalid || this.isSubmitting) {
+    if (this.courseForm.invalid) return;
+
+    const formData = this.courseForm.value;
+    const teacherId = this.authService.getUserId();
+    
+    if (!teacherId) {
+      this.errorMessage = 'You must be logged in to create or edit courses.';
       return;
     }
 
-    this.isSubmitting = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const userId = this.authService.getUserId();
-    if (!userId) {
-      this.errorMessage = 'You must be logged in to perform this action.';
-      this.isSubmitting = false;
-      return;
-    }
-
-    const courseData: CourseRequest = {
-      title: this.courseForm.value.title,
-      description: this.courseForm.value.description,
-      teacherId: userId
+    const courseData = {
+      title: formData.title,
+      description: formData.description,
+      teacherId: teacherId
     };
 
-    if (this.isEditingCourse && this.courseId) {
-      this.updateCourse(courseData);
-    } else {
-      this.createCourse(courseData);
-    }
-  }
-
-  createCourse(courseData: CourseRequest): void {
-    this.courseService.addCourse(courseData)
-      .subscribe({
-        next: (course) => {
-          this.successMessage = 'Course created successfully!';
-          this.isSubmitting = false;
-          this.courseId = course.id;
-          this.isEditingCourse = true;
-          this.isCreatingCourse = false;
-          this.course = course;
-
-          // Update the URL without navigating
-          this.router.navigate(['/courses', course.id], { replaceUrl: true });
-
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 3000);
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to create course. Please try again later.';
-          this.isSubmitting = false;
-        }
-      });
-  }
-
-  updateCourse(courseData: CourseRequest): void {
-    if (!this.courseId) return;
-
-    this.courseService.updateCourse(this.courseId, courseData)
-      .subscribe({
-        next: (course) => {
+    this.isLoading = true;
+    
+    if (this.editMode && this.selectedCourse) {
+      // Update existing course
+      this.courseService.updateCourse(this.selectedCourse.id, courseData).subscribe({
+        next: (updatedCourse) => {
+          const index = this.courses.findIndex(c => c.id === this.selectedCourse!.id);
+          if (index !== -1) {
+            this.courses[index] = updatedCourse;
+            this.filteredCourses = [...this.courses];
+          }
           this.successMessage = 'Course updated successfully!';
-          this.isSubmitting = false;
-          this.course = course;
-
+          this.showCourseForm = false;
+          this.isLoading = false;
+          
+          // Clear message after 3 seconds
           setTimeout(() => {
             this.successMessage = '';
           }, 3000);
         },
         error: (error) => {
-          this.errorMessage = 'Failed to update course. Please try again later.';
-          this.isSubmitting = false;
+          this.errorMessage = 'Failed to update course. Please try again.';
+          this.isLoading = false;
         }
       });
-  }
-
-  deleteCourse(): void {
-    if (!this.courseId || !confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
-      return;
-    }
-
-    this.courseService.deleteCourse(this.courseId)
-      .subscribe({
-        next: () => {
-          this.successMessage = 'Course deleted successfully!';
+    } else {
+      // Create new course
+      this.courseService.addCourse(courseData).subscribe({
+        next: (newCourse) => {
+          this.courses.push(newCourse);
+          this.filteredCourses = [...this.courses];
+          this.successMessage = 'Course created successfully!';
+          this.showCourseForm = false;
+          this.isLoading = false;
+          
+          // Clear message after 3 seconds
           setTimeout(() => {
-            this.router.navigate(['/courses']);
-          }, 1500);
+            this.successMessage = '';
+          }, 3000);
         },
         error: (error) => {
-          this.errorMessage = 'Failed to delete course. Please try again later.';
+          this.errorMessage = 'Failed to create course. Please try again.';
+          this.isLoading = false;
         }
       });
+    }
   }
 
-  // Lesson operations
+  // Lesson Management
+  manageLessons(course: Course): void {
+    this.selectedCourse = course;
+    this.showLessonManager = true;
+    this.loadLessons(course.id);
+  }
+
+  loadLessons(courseId: number): void {
+    this.isLoading = true;
+    this.lessonService.getLessonsByCourseId(courseId).subscribe({
+      next: (lessons) => {
+        this.lessons = lessons;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to load lessons. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  backToCourses(): void {
+    this.showLessonManager = false;
+    this.selectedCourse = null;
+    this.lessons = [];
+  }
+
+  // Lesson Form Operations
+  openLessonForm(): void {
+    this.editingLesson = false;
+    this.lessonForm.reset();
+    this.showLessonForm = true;
+  }
+
+  editLesson(lesson: Lesson): void {
+    this.editingLesson = true;
+    this.lessonForm.patchValue({
+      id: lesson.id,
+      title: lesson.title,
+      content: lesson.content
+    });
+    this.showLessonForm = true;
+  }
+
+  cancelLessonForm(): void {
+    this.showLessonForm = false;
+    this.lessonForm.reset();
+  }
+
   onSubmitLesson(): void {
-    if (this.lessonForm.invalid || this.isSubmitting) {
-      return;
-    }
+    if (this.lessonForm.invalid || !this.selectedCourse) return;
 
-    this.isSubmitting = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
+    const formData = this.lessonForm.value;
     const lessonData: LessonRequest = {
-      title: this.lessonForm.value.title,
-      content: this.lessonForm.value.content,
-      courseId: this.courseId!
+      title: formData.title,
+      content: formData.content,
+      courseId: this.selectedCourse.id
     };
 
-    if (this.isEditingLesson && this.selectedLesson) {
-      this.updateLesson(lessonData);
+    this.isLoading = true;
+
+    if (this.editingLesson) {
+      // Update existing lesson
+      const lessonId = formData.id;
+      this.lessonService.updateLesson(this.selectedCourse.id, lessonId, lessonData).subscribe({
+        next: () => {
+          this.loadLessons(this.selectedCourse!.id); // Refresh lesson list
+          this.successMessage = 'Lesson updated successfully!';
+          this.showLessonForm = false;
+          this.isLoading = false;
+          
+          // Clear message after 3 seconds
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to update lesson. Please try again.';
+          this.isLoading = false;
+        }
+      });
     } else {
-      this.createLesson(lessonData);
+      // Create new lesson
+      this.lessonService.createLesson(this.selectedCourse.id, lessonData).subscribe({
+        next: () => {
+          this.loadLessons(this.selectedCourse!.id); // Refresh lesson list
+          this.successMessage = 'Lesson created successfully!';
+          this.showLessonForm = false;
+          this.isLoading = false;
+          
+          // Clear message after 3 seconds
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to create lesson. Please try again.';
+          this.isLoading = false;
+        }
+      });
     }
   }
 
-  createLesson(lessonData: LessonRequest): void {
-    if (!this.courseId) return;
-
-    this.lessonService.createLesson(this.courseId, lessonData)
-      .subscribe({
-        next: (response) => {
-          this.successMessage = 'Lesson created successfully!';
-          this.isSubmitting = false;
-          this.isCreatingLesson = false;
-
-          // Reload the lessons list
-          this.loadLessons();
-
-          // Switch back to the lessons tab
-          this.activeTab = 1;
-
-          // Update URL without navigation
-          this.router.navigate(['/courses', this.courseId, 'tab', 'lessons'],
-            { replaceUrl: true, queryParamsHandling: 'preserve' });
-
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 3000);
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to create lesson. Please try again later.';
-          this.isSubmitting = false;
-        }
-      });
-  }
-
-  updateLesson(lessonData: Partial<LessonRequest>): void {
-    if (!this.courseId || !this.selectedLesson) return;
-
-    this.lessonService.updateLesson(this.courseId, this.selectedLesson.id, lessonData)
-      .subscribe({
-        next: () => {
-          this.successMessage = 'Lesson updated successfully!';
-          this.isSubmitting = false;
-          this.isEditingLesson = false;
-
-          // Reload the lessons list and the current lesson
-          this.loadLessons();
-          this.loadLessonData(this.selectedLesson!.id);
-
-          // Update URL without navigation
-          this.router.navigate(['/courses', this.courseId, 'tab', 'lessons', 'view', this.selectedLesson?.id],
-            { replaceUrl: true, queryParamsHandling: 'preserve' });
-
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 3000);
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to update lesson. Please try again later.';
-          this.isSubmitting = false;
-        }
-      });
+  // Delete Operations
+  openDeleteDialog(course: Course): void {
+    this.showDeleteConfirmation = true;
+    this.deletingLesson = false;
+    this.itemToDeleteId = course.id;
   }
 
   deleteLesson(lessonId: number): void {
-    if (!this.courseId || !confirm('Are you sure you want to delete this lesson? This action cannot be undone.')) {
-      return;
-    }
+    this.showDeleteConfirmation = true;
+    this.deletingLesson = true;
+    this.itemToDeleteId = lessonId;
+  }
 
-    this.lessonService.deleteLesson(this.courseId, lessonId)
-      .subscribe({
+  cancelDelete(): void {
+    this.showDeleteConfirmation = false;
+    this.itemToDeleteId = null;
+  }
+
+  confirmDelete(): void {
+    if (this.itemToDeleteId === null) return;
+
+    this.isLoading = true;
+
+    if (this.deletingLesson) {
+      // Delete lesson
+      if (!this.selectedCourse) return;
+      
+      this.lessonService.deleteLesson(this.selectedCourse.id, this.itemToDeleteId).subscribe({
         next: () => {
+          this.lessons = this.lessons.filter(lesson => lesson.id !== this.itemToDeleteId);
           this.successMessage = 'Lesson deleted successfully!';
-
-          // If we're viewing the deleted lesson, go back to lessons list
-          if (this.selectedLesson && this.selectedLesson.id === lessonId) {
-            this.selectedLesson = null;
-            this.activeTab = 1;
-          }
-
-          // Update the lessons list
-          this.lessons = this.lessons.filter(lesson => lesson.id !== lessonId);
-
+          this.showDeleteConfirmation = false;
+          this.isLoading = false;
+          
+          // Clear message after 3 seconds
           setTimeout(() => {
             this.successMessage = '';
           }, 3000);
         },
         error: (error) => {
-          this.errorMessage = 'Failed to delete lesson. Please try again later.';
+          this.errorMessage = 'Failed to delete lesson. Please try again.';
+          this.isLoading = false;
+          this.showDeleteConfirmation = false;
         }
       });
-  }
-
-  // Navigation operations
-  viewLesson(lessonId: number): void {
-    this.loadLessonData(lessonId);
-    this.isEditingLesson = false;
-    this.isCreatingLesson = false;
-    this.activeTab = 2;
-
-    // Update URL without navigation
-    this.router.navigate(['/courses', this.courseId, 'tab', 'lessons', 'view', lessonId],
-      { replaceUrl: true, queryParamsHandling: 'preserve' });
-  }
-
-  editLesson(lessonId: number): void {
-    this.loadLessonData(lessonId);
-    this.isEditingLesson = true;
-    this.isCreatingLesson = false;
-    this.activeTab = 2;
-
-    // Update URL without navigation
-    this.router.navigate(['/courses', this.courseId, 'tab', 'lessons', 'edit', lessonId],
-      { replaceUrl: true, queryParamsHandling: 'preserve' });
-  }
-
-  createNewLesson(): void {
-    if (!this.courseId) {
-      this.errorMessage = 'Course ID is required to create a new lesson';
-      return;
-    }
-
-    this.isCreatingLesson = true;
-    this.isEditingLesson = false;
-    this.selectedLesson = null;
-    this.lessonForm.reset();
-    this.activeTab = 2;
-
-    // Update URL without navigation - now with null check
-    this.router.navigate(['/courses', this.courseId, 'tab', 'lessons', 'new'], {
-      replaceUrl: true,
-      queryParamsHandling: 'preserve'
-    }).catch(error => {
-      console.error('Navigation error:', error);
-      this.errorMessage = 'Navigation failed. Please try again.';
-    });
-  }
-
-  handleTabChange(index: number): void {
-    // Don't allow switching to lessons tab if creating a new course
-    if (this.isCreatingCourse && index === 1) {
-      return;
-    }
-
-    this.activeTab = index;
-
-    if (this.activeTab === 1 && this.lessons.length === 0) {
-      this.loadLessons();
-    }
-
-    if (this.courseId) {
-      const navigationPath = ['/courses', this.courseId];
-
-      if (this.activeTab === 1) {
-        navigationPath.push('tab', 'lessons');
-      }
-
-      this.router.navigate(navigationPath, {
-        replaceUrl: true,
-        queryParamsHandling: 'preserve'
-      }).catch(error => {
-        console.error('Navigation error:', error);
-        this.errorMessage = 'Navigation failed. Please try again.';
+    } else {
+      // Delete course
+      this.courseService.deleteCourse(this.itemToDeleteId).subscribe({
+        next: () => {
+          this.courses = this.courses.filter(course => course.id !== this.itemToDeleteId);
+          this.filteredCourses = [...this.courses];
+          this.successMessage = 'Course deleted successfully!';
+          this.showDeleteConfirmation = false;
+          this.isLoading = false;
+          
+          // Clear message after 3 seconds
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to delete course. Please try again.';
+          this.isLoading = false;
+          this.showDeleteConfirmation = false;
+        }
       });
     }
-  }
-
-  cancelEdit(): void {
-    if (this.isEditingCourse) {
-      // If we're editing the course, revert to view mode
-      this.loadCourseData();
-      this.isEditingCourse = true;
-    } else if (this.isCreatingCourse) {
-      // If creating a new course, go back to courses list
-      this.router.navigate(['/courses']);
-    } else if (this.isEditingLesson) {
-      // If editing a lesson, go back to lesson view
-      this.isEditingLesson = false;
-      this.loadLessonData(this.selectedLesson!.id);
-    } else if (this.isCreatingLesson) {
-      // If creating a lesson, go back to lessons list
-      this.isCreatingLesson = false;
-      this.activeTab = 1;
-    }
-  }
-
-  // Utility functions
-  back(): void {
-    if (this.activeTab === 2) {
-      // From lesson details/edit back to lessons list
-      this.activeTab = 1;
-      this.selectedLesson = null;
-      this.isEditingLesson = false;
-      this.isCreatingLesson = false;
-    } else if (this.activeTab === 1) {
-      // From lessons list back to course details
-      this.activeTab = 0;
-    } else {
-      // From course details back to courses list
-      this.router.navigate(['/courses']);
-    }
-  }
-
-  // Public navigation method
-  navigateToCourses(): void {
-    this.router.navigate(['/courses']);
   }
 }
