@@ -12,11 +12,6 @@
     <p class="error-message">{{ errorMessage }}</p>
     } @else {
     <div class="action-bar">
-      @if (isTeacher) {
-      <button mat-raised-button color="primary" (click)="createNewCourse()">
-        <mat-icon>add_circle</mat-icon> Create New Course
-      </button>
-      }
       <div class="search-box">
         <mat-icon>search</mat-icon>
         <input type="text" placeholder="Search Courses..." [(ngModel)]="searchTerm" (keyup)="filterCourses()">

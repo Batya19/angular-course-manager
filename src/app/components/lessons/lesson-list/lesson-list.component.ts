@@ -1,16 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { Course } from '../../../models/course.model';
 import { Lesson } from '../../../models/lesson.model';
-
 import { AuthService } from '../../../services/auth.service';
 import { CourseService } from '../../../services/course.service';
 import { LessonService } from '../../../services/lesson.service';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -21,7 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   templateUrl: './lesson-list.component.html',
   styleUrls: ['./lesson-list.component.css'],
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatListModule, MatDividerModule, MatDialogModule]
+  imports: [MatCardModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatListModule, MatDividerModule]
 })
 export class LessonListComponent implements OnInit {
   @Input() courseId: number = 0;
@@ -29,7 +25,6 @@ export class LessonListComponent implements OnInit {
   lessons: Lesson[] = [];
   isLoading: boolean = true;
   errorMessage: string = '';
-  isTeacher: boolean = false;
   isOwner: boolean = false;
   isEnrolled: boolean = false;
 
@@ -38,12 +33,10 @@ export class LessonListComponent implements OnInit {
     private router: Router,
     private lessonService: LessonService,
     private courseService: CourseService,
-    private authService: AuthService,
-    private dialog: MatDialog
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
-    this.isTeacher = this.authService.isTeacher();
     this.route.params.subscribe(params => {
       this.courseId = +params['courseId'];
       this.loadCourseDetails();
@@ -90,43 +83,7 @@ export class LessonListComponent implements OnInit {
     }
   }
 
-  createLesson(): void {
-    if (this.isOwner) {
-      this.router.navigate(['/courses', this.courseId, 'lessons', 'new']);
-    }
-  }
-
-  editLesson(lessonId: number, event: Event): void {
-    event.stopPropagation();
-    if (this.isOwner) {
-      this.router.navigate(['/courses', this.courseId, 'lessons', lessonId, 'edit']);
-    }
-  }
-
-  deleteLesson(lessonId: number, event: Event): void {
-    event.stopPropagation();
-    if (!this.isOwner) return;
-
-    if (!confirm('Are you sure you want to delete this lesson? This action cannot be undone.')) {
-      return;
-    }
-
-    this.lessonService.deleteLesson(this.courseId, lessonId)
-      .subscribe({
-        next: () => {
-          this.lessons = this.lessons.filter(lesson => lesson.id !== lessonId);
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to delete the lesson. Please try again.';
-        }
-      });
-  }
-
   backToCourse(): void {
     this.router.navigate(['/courses', this.courseId]);
-  }
-
-  reorderLessons(): void {
-    console.log('Reorder lessons functionality would go here');
   }
 }

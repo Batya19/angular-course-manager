@@ -16,16 +16,14 @@
       <p>{{ course.description }}</p>
 
       <div class="course-actions">
-        @if (!isEnrolled && !isOwner) {
-        <button mat-raised-button color="primary" (click)="enrollInCourse()">Enroll</button>
-        }
-
-        @if (isEnrolled && !isOwner) {
-        <button mat-raised-button color="warn" (click)="unenrollFromCourse()">Unenroll</button>
-        }
-
-        @if (isOwner) {
-        <button mat-raised-button color="primary" (click)="editCourse()">Edit Course</button>
+        @if (!isEnrolled) {
+        <button mat-raised-button color="primary" (click)="enrollInCourse()">
+          Enroll in Course
+        </button>
+        } @else {
+        <button mat-raised-button color="warn" (click)="unenrollFromCourse()">
+          Unenroll from Course
+        </button>
         }
       </div>
     </div>
@@ -33,10 +31,10 @@
     <div class="lessons-preview-section">
       <div class="section-header">
         <h3>Lessons Preview</h3>
-        @if (isOwner) {
-        <button mat-button color="primary" (click)="viewAllLessons()">Manage Lessons</button>
-        } @else if (isEnrolled) {
-        <button mat-button color="primary" (click)="viewAllLessons()">View All Lessons</button>
+        @if (isEnrolled) {
+        <button mat-button color="primary" (click)="viewAllLessons()">
+          View All Lessons
+        </button>
         }
       </div>
 

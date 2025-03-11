@@ -31,8 +31,6 @@ export class CourseDetailsComponent implements OnInit {
   isLoading: boolean = true;
   errorMessage: string = '';
   isEnrolled: boolean = false;
-  isTeacher: boolean = false;
-  isOwner: boolean = false;
   userId: number | null = null;
 
   constructor(
@@ -44,9 +42,7 @@ export class CourseDetailsComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.isTeacher = this.authService.isTeacher();
     this.userId = this.authService.getUserId();
-
     this.route.params.subscribe(params => {
       this.courseId = +params['id'];
       this.loadCourseDetails();
@@ -59,14 +55,11 @@ export class CourseDetailsComponent implements OnInit {
       .subscribe({
         next: (course) => {
           this.course = course;
-          this.isOwner = course.teacherId === this.authService.getUserId();
-
           if (this.userId) {
             this.courseService.getStudentCourses(this.userId).subscribe(userCourses => {
               this.isEnrolled = userCourses.some(c => c.id === this.courseId);
             });
           }
-
           this.loadLessons();
         },
         error: (error) => {
@@ -91,6 +84,10 @@ export class CourseDetailsComponent implements OnInit {
   }
 
   viewLesson(lessonId: number): void {
+    if (!this.isEnrolled) {
+      this.enrollInCourse();
+      return;
+    }
     this.router.navigate(['/courses', this.courseId, 'lessons', lessonId]);
   }
 
@@ -138,11 +135,11 @@ export class CourseDetailsComponent implements OnInit {
       .subscribe();
   }
 
-  editCourse(): void {
-    this.router.navigate(['/course-management', this.courseId]);
-  }
-
   viewAllLessons(): void {
+    if (!this.isEnrolled) {
+      this.enrollInCourse();
+      return;
+    }
     this.router.navigate(['/courses', this.courseId, 'lessons']);
   }
 }

@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Course } from '../../../models/course.model';
-
 import { AuthService } from '../../../services/auth.service';
 import { CourseService } from '../../../services/course.service';
 
@@ -20,19 +19,20 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   standalone: true,
   imports: [MatCardModule, MatButtonModule, MatProgressSpinnerModule, MatListModule, MatDividerModule, MatIconModule]
 })
-
 export class MyCoursesComponent implements OnInit {
   courses: Course[] = [];
   isLoading: boolean = true;
   errorMessage: string = '';
   userId: number | null = null;
-  isTeacher: boolean = false;
 
-  constructor(private courseService: CourseService, private authService: AuthService, private router: Router) { }
+  constructor(
+    private courseService: CourseService,
+    private authService: AuthService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     this.userId = this.authService.getUserId();
-    this.isTeacher = this.authService.isTeacher();
 
     if (!this.userId) {
       this.router.navigate(['/login']);
@@ -80,10 +80,6 @@ export class MyCoursesComponent implements OnInit {
           this.errorMessage = 'Failed to unenroll from the course. Please try again.';
         }
       });
-  }
-
-  createNewCourse(): void {
-    this.router.navigate(['/course-management']);
   }
 
   goToCourses() {

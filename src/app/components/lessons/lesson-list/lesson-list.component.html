@@ -16,27 +16,9 @@
     } @else if (errorMessage) {
       <p class="error-message">{{ errorMessage }}</p>
     } @else if (course) {
-      <div class="lesson-management-controls">
-        @if (isOwner) {
-          <div class="owner-actions">
-            <button mat-raised-button color="primary" (click)="createLesson()">
-              <mat-icon>add</mat-icon> Create Lesson
-            </button>
-            @if (lessons.length > 1) {
-              <button mat-button color="accent" (click)="reorderLessons()">
-                <mat-icon>reorder</mat-icon> Reorder Lessons
-              </button>
-            }
-          </div>
-        }
-      </div>
-
       @if (lessons.length === 0) {
         <div class="empty-state">
           <p>No lessons available for this course yet.</p>
-          @if (isOwner) {
-            <p>Get started by creating your first lesson!</p>
-          }
         </div>
       } @else {
         <mat-list class="lesson-list">
@@ -44,16 +26,6 @@
             <mat-list-item (click)="viewLesson(lesson.id)" [class.not-enrolled]="!isEnrolled && !isOwner">
               <div class="lesson-item">
                 <h4 mat-line>{{ lesson.title }}</h4>
-                @if (isOwner) {
-                  <div class="lesson-actions">
-                    <button mat-icon-button color="accent" (click)="editLesson(lesson.id, $event)" aria-label="Edit lesson">
-                      <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button color="warn" (click)="deleteLesson(lesson.id, $event)" aria-label="Delete lesson">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
-                }
               </div>
             </mat-list-item>
             <mat-divider></mat-divider>

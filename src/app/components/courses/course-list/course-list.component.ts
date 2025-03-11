@@ -25,7 +25,6 @@ import { Course } from '../../../models/course.model';
 export class CourseListComponent implements OnInit {
   courses: Course[] = [];
   filteredCourses: Course[] = [];
-  isTeacher: boolean = false;
   isLoading: boolean = true;
   errorMessage: string = '';
   searchTerm: string = '';
@@ -37,7 +36,6 @@ export class CourseListComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.isTeacher = this.authService.isTeacher();
     this.loadCourses();
   }
 
@@ -55,17 +53,16 @@ export class CourseListComponent implements OnInit {
               this.courses.forEach(course => {
                 course.isEnrolled = userCourses.some(userCourse => userCourse.id === course.id);
               });
-
               this.filteredCourses = [...this.courses];
               this.isLoading = false;
             },
-            error: (error) => {
+            error: () => {
               this.filteredCourses = [...this.courses];
               this.isLoading = false;
             }
           });
         },
-        error: (error) => {
+        error: () => {
           this.errorMessage = 'Failed to load courses. Please try again later.';
           this.isLoading = false;
         }
@@ -77,7 +74,7 @@ export class CourseListComponent implements OnInit {
           this.filteredCourses = [...courses];
           this.isLoading = false;
         },
-        error: (error) => {
+        error: () => {
           this.errorMessage = 'Failed to load courses. Please try again later.';
           this.isLoading = false;
         }
@@ -102,10 +99,6 @@ export class CourseListComponent implements OnInit {
     this.router.navigate(['/courses', courseId]);
   }
 
-  createNewCourse(): void {
-    this.router.navigate(['/course-management']);
-  }
-
   enrollInCourse(courseId: number, event: Event): void {
     event.stopPropagation();
     const userId = this.authService.getUserId();
@@ -115,21 +108,20 @@ export class CourseListComponent implements OnInit {
       return;
     }
 
-    this.courseService.joinCourse(courseId, userId)
-      .subscribe({
-        next: () => {
-          const courseIndex = this.courses.findIndex(c => c.id === courseId);
-          if (courseIndex !== -1) {
-            this.courses[courseIndex].isEnrolled = true;
-            const filteredIndex = this.filteredCourses.findIndex(c => c.id === courseId);
-            if (filteredIndex !== -1) {
-              this.filteredCourses[filteredIndex].isEnrolled = true;
-            }
+    this.courseService.joinCourse(courseId, userId).subscribe({
+      next: () => {
+        const courseIndex = this.courses.findIndex(c => c.id === courseId);
+        if (courseIndex !== -1) {
+          this.courses[courseIndex].isEnrolled = true;
+          const filteredIndex = this.filteredCourses.findIndex(c => c.id === courseId);
+          if (filteredIndex !== -1) {
+            this.filteredCourses[filteredIndex].isEnrolled = true;
           }
-        },
-        error: (error) => {
-          this.errorMessage = 'Failed to enroll in the course. Please try again.';
         }
-      });
+      },
+      error: () => {
+        this.errorMessage = 'Failed to enroll in the course. Please try again.';
+      }
+    });
   }
 }

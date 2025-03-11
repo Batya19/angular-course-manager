@@ -11,12 +11,6 @@
     } @else if (errorMessage) {
     <p class="error-message">{{ errorMessage }}</p>
     } @else {
-    @if (isTeacher) {
-    <button mat-raised-button color="primary" (click)="createNewCourse()">
-      <mat-icon>add</mat-icon> Create New Course
-    </button>
-    }
-
     <div class="course-container">
       @if (courses.length === 0) {
       <div class="empty-state">

@@ -210,6 +210,6 @@ export class LessonDetailsComponent implements OnInit {
   }
 
   backToLessons(): void {
-    this.router.navigate(['/courses', this.courseId]);
+    this.router.navigate(['/courseshere ', this.courseId]);
   }
 }
