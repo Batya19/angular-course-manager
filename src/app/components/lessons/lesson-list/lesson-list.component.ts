@@ -74,15 +74,6 @@ export class LessonListComponent implements OnInit {
       });
   }
 
-  viewLesson(lessonId: number): void {
-    if (this.isEnrolled || this.isOwner) {
-      this.router.navigate(['/courses', this.courseId, 'lessons', lessonId]);
-    } else {
-      this.errorMessage = 'You must be enrolled in this course to view lessons.';
-      setTimeout(() => this.errorMessage = '', 3000);
-    }
-  }
-
   backToCourse(): void {
     this.router.navigate(['/courses', this.courseId]);
   }

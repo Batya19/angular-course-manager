@@ -23,7 +23,7 @@
       } @else {
         <mat-list class="lesson-list">
           @for (lesson of lessons; track lesson.id) {
-            <mat-list-item (click)="viewLesson(lesson.id)" [class.not-enrolled]="!isEnrolled && !isOwner">
+            <mat-list-item class="read-only-lesson">
               <div class="lesson-item">
                 <h4 mat-line>{{ lesson.title }}</h4>
               </div>
